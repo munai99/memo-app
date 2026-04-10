@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>付箋メモ</title>
+
+<style>
+body {
+  margin: 0;
+  font-family: sans-serif;
+  background: #fdf6b2;
+}
+
+/* コンテナ（中央寄せ・スマホ感） */
+#list, #editor {
+  padding: 12px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* テキストエリア */
+textarea {
+  width: 100%;
+  height: 200px;
+  background: #fff9c4;
+  border: none;
+  padding: 10px;
+  font-size: 16px;
+  color: #333;
+  border-radius: 10px;
+  box-sizing: border-box;
+}
+
+/* 共通ボタン */
+button {
+  padding: 10px 14px;
+  margin: 6px 0;
+  border: none;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: bold;
+  transition: 0.2s;
+}
+
+/* 上部ボタンエリア（横並び） */
+.top-buttons {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.top-buttons button {
+  flex: 1;
+}
+
+/* 戻る */
+.back-btn {
+  background: #6c757d;
+  color: white;
+  box-shadow: 0 3px #555;
+}
+
+/* 戻す（有効） */
+.undo-active {
+  background: #dc3545;
+  color: white;
+  box-shadow: 0 3px #a71d2a;
+}
+
+/* 戻す（無効） */
+.undo-disabled {
+  background: #ccc;
+  color: #666;
+  box-shadow: 0 3px #aaa;
+}
+
+/* 押した時 */
+button:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px #555;
+}
+
+/* 一覧カード */
+.item {
+  background: #fff9c4;
+  padding: 12px;
+  margin: 8px 0;
+  border-radius: 10px;
+  box-shadow: 2px 2px 5px rgba(0,0,0,0.15);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* テキスト */
+.text {
+  flex: 1;
+  cursor: pointer;
+}
+
+/* 削除ボタン */
+.delete {
+  background: red;
+  color: white;
+  padding: 6px 10px;
+  border-radius: 8px;
+}
+</style>
+
+</head>
+
+<body>
+
+<!-- 一覧 -->
+
+<div id="list">
+  <button onclick="newMemo()">＋ 新規メモ</button>
+  <div id="memoList"></div>
+</div>
+
+<!-- 編集 -->
+
+<div id="editor" style="display:none;">
+
+  <div class="top-buttons">
+    <button class="back-btn" onclick="back()">← ホーム</button>
+
+```
+<button id="undoBtn" class="undo-disabled" onclick="undo()" disabled>
+  ↩ 戻す
+</button>
+```
+
+  </div>
+
+  <textarea id="memoText"></textarea>
+
+</div>
+
+<script>
+let memos = JSON.parse(localStorage.getItem("memos") || "[]");
+let current = null;
+let lastState = "";
+
+const listDiv = document.getElementById("memoList");
+const editor = document.getElementById("editor");
+const list = document.getElementById("list");
+const memoText = document.getElementById("memoText");
+const undoBtn = document.getElementById("undoBtn");
+
+/* 一覧表示 */
+function render() {
+  listDiv.innerHTML = "";
+
+  memos.forEach((m, i) => {
+    const div = document.createElement("div");
+    div.className = "item";
+
+    const text = document.createElement("div");
+    text.className = "text";
+    text.textContent = m.substring(0, 30) || "（空の付箋）";
+    text.onclick = () => openMemo(i);
+
+    const del = document.createElement("button");
+    del.className = "delete";
+    del.textContent = "削除";
+
+    del.onclick = (e) => {
+      e.stopPropagation();
+      if (confirm("削除しますか？")) {
+        memos.splice(i, 1);
+        save();
+        render();
+      }
+    };
+
+    div.appendChild(text);
+    div.appendChild(del);
+    listDiv.appendChild(div);
+  });
+}
+
+/* 新規 */
+function newMemo() {
+  memos.push("");
+  save();
+  openMemo(memos.length - 1);
+}
+
+/* 開く */
+function openMemo(i) {
+  current = i;
+  memoText.value = memos[i];
+  lastState = memos[i];
+  updateUndoState();
+
+  list.style.display = "none";
+  editor.style.display = "block";
+}
+
+/* 戻る */
+function back() {
+  list.style.display = "block";
+  editor.style.display = "none";
+  render();
+}
+
+/* 入力 */
+memoText.addEventListener("input", () => {
+  if (current !== null) {
+    memos[current] = memoText.value;
+    save();
+    updateUndoState();
+  }
+});
+
+/* Undo */
+function undo() {
+  if (current !== null) {
+    memoText.value = lastState;
+    memos[current] = lastState;
+    save();
+    updateUndoState();
+  }
+}
+
+/* Undo状態 */
+function updateUndoState() {
+  if (memoText.value !== lastState) {
+    undoBtn.className = "undo-active";
+    undoBtn.disabled = false;
+  } else {
+    undoBtn.className = "undo-disabled";
+    undoBtn.disabled = true;
+  }
+}
+
+/* 保存 */
+function save() {
+  localStorage.setItem("memos", JSON.stringify(memos));
+}
+
+/* 初期 */
+render();
+</script>
+
+</body>
+</html>
