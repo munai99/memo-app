@@ -1,9 +1,12 @@
 <!DOCTYPE html>
-
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- ⭐ アイコン追加（ここ） -->
+<link rel="icon" type="image/png" href="images/icon.png?v=1">
+
 <title>付箋メモ</title>
 
 <style>
@@ -114,25 +117,20 @@ button:active {
 <body>
 
 <!-- 一覧 -->
-
 <div id="list">
   <button onclick="newMemo()">＋ 新規メモ</button>
   <div id="memoList"></div>
 </div>
 
 <!-- 編集 -->
-
 <div id="editor" style="display:none;">
 
   <div class="top-buttons">
     <button class="back-btn" onclick="back()">← ホーム</button>
 
-```
-<button id="undoBtn" class="undo-disabled" onclick="undo()" disabled>
-  ↩ 戻す
-</button>
-```
-
+    <button id="undoBtn" class="undo-disabled" onclick="undo()" disabled>
+      ↩ 戻す
+    </button>
   </div>
 
   <textarea id="memoText"></textarea>
@@ -145,8 +143,8 @@ let current = null;
 let lastState = "";
 
 const listDiv = document.getElementById("memoList");
-const editor = document.getElementById("editor");
 const list = document.getElementById("list");
+const editor = document.getElementById("editor");
 const memoText = document.getElementById("memoText");
 const undoBtn = document.getElementById("undoBtn");
 
